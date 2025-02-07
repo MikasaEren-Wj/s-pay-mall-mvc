@@ -7,11 +7,14 @@ server:
       min-spare: 10
     accept-count: 10
 
-# 微信公众号对接
+# 微信公众号对接 https://mp.weixin.qq.com/debug/cgi-bin/sandboxinfo?action=showinfo&t=sandbox/index
 weixin:
   config:
     originalid: gh_59b7f1855bde
     token: mikasa
+    app-id: wx2846d06252d4ec16
+    app-secret: 3859408585a2a91d014a6bd5e12dc9c1
+    template_id: OaccpGQh8mp3RYw3iqfEw7vkb7V04S4cJ9ZyEEzPcEM
 
 
 spring:

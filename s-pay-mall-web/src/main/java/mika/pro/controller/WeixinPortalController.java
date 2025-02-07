@@ -4,9 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import mika.pro.common.weixin.MessageTextEntity;
 import mika.pro.common.weixin.SignatureUtil;
 import mika.pro.common.weixin.XmlUtil;
+import mika.pro.service.ILoginService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
 
 /**
  * 微信服务对接，对接地址：<a href="http://mikasa.natapp1.cc/api/v1/weixin/portal/receive">/api/v1/weixin/portal/receive</a>
@@ -23,6 +26,9 @@ public class WeixinPortalController {
     private String originalid;
     @Value("${weixin.config.token}")
     private String token;
+
+    @Resource
+    private ILoginService loginService;
 
     @GetMapping(value = "receive", produces = "text/plain;charset=utf-8")
     public String validate(@RequestParam(value = "signature", required = false) String signature,
@@ -58,6 +64,16 @@ public class WeixinPortalController {
             log.info("接收微信公众号信息请求{}开始 {}", openid, requestBody);
             // 消息转换
             MessageTextEntity message = XmlUtil.xmlToBean(requestBody, MessageTextEntity.class);
+
+            //这里需要验证是否登录成功
+            if ("event".equals(message.getMsgType()) && "SCAN".equals(message.getEvent())) {
+                //登录成功则保存登录状态
+                loginService.saveLoginState(message.getTicket(), openid);
+                log.info("登录成功 openid：{} ticket：{}", openid, message.getTicket());
+                //公众号发送消息提示
+                return buildMessageTextEntity(openid, "登录成功");
+            }
+
             return buildMessageTextEntity(openid, "你好呀~" + message.getContent());
         } catch (Exception e) {
             log.error("接收微信公众号信息请求{}失败 {}", openid, requestBody, e);
