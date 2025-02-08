@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mika.pro.dao.OrderDao">
+
+    <insert id="insertOrder" parameterType="mika.pro.domain.po.OrderDetail">
+        insert into pay_order
+        (user_id, product_id, product_name, order_id, order_time,
+        total_amount, status, create_time, update_time)
+        values(#{userId}, #{productId}, #{productName}, #{orderId}, #{orderTime},
+        #{totalAmount}, #{status}, now(), now())
+    </insert>
+
+    <select id="queryOrderUnPay" resultType="mika.pro.domain.po.OrderDetail" >
+        select * from pay_order
+        <where>
+            <if test="userId!=null">
+                and user_id=#{userId}
+            </if>
+            <if test="productId!=null">
+                and product_id=#{productId}
+            </if>
+            <if test="true">
+                and status in ('create','pay_wait')
+            </if>
+        </where>
+<!--        注意按id排序 只取一条-->
+        order by id
+        limit 1
+    </select>
+
+    <update id="updateOrder" parameterType="mika.pro.domain.po.OrderDetail">
+        update pay_order
+        <set>
+            <if test="userId != null">
+                user_id=#{userId},
+            </if>
+            <if test="productId != null">
+                product_id=#{productId},
+            </if>
+            <if test="productName != null">
+                product_name=#{productName},
+            </if>
+            <if test="orderTime != null">
+                order_time=#{orderTime},
+            </if>
+            <if test="totalAmount != null">
+                total_amount=#{totalAmount},
+            </if>
+            <if test="status!=null">
+                status=#{status},
+            </if>
+            <if test="payUrl!=null">
+                pay_url=#{payUrl},
+            </if>
+            <if test="payTime != null">
+                pay_time=#{payTime},
+            </if>
+            <if test="createTime != null">
+                create_time=#{createTime},
+            </if>
+            <if test="true">
+                update_time=now(),
+            </if>
+        </set>
+        where order_id=#{orderId}
+    </update>
+
+    <select id="queryNoPayNotifyOrder" resultType="java.lang.String">
+        select order_id
+        from pay_order
+        WHERE status = 'PAY_WAIT'
+          and now() between order_time and order_time + INTERVAL 30 MINUTE
+    </select>
+
+    <select id="queryTimeOutOrder" resultType="java.lang.String">
+        select order_id from pay_order
+        WHERE status = 'PAY_WAIT' AND NOW() > order_time + INTERVAL 30 MINUTE
+    </select>
+</mapper>
